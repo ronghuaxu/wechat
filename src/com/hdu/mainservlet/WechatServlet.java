@@ -16,56 +16,56 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.hdu.wechat.mainchat;
+import org.apache.log4j.Logger;
 
+import com.hdu.wechat.MainChat;
 
 /**
  * ClassName:WechatServlet <br/>
  * Function: TODO ADD FUNCTION. <br/>
- * Reason:	 TODO ADD REASON. <br/>
- * Date:     2015年11月16日 下午2:03:47 <br/>
- * @author   t
- * @version  
- * @since    JDK 1.6
- * @see 	 
+ * Reason: TODO ADD REASON. <br/>
+ * Date: 2015年11月16日 下午2:03:47 <br/>
+ * 
+ * @author t
+ * @version
+ * @since JDK 1.6
+ * @see
  */
-public class WechatServlet extends HttpServlet{
-	
+public class WechatServlet extends HttpServlet {
 
+	Logger logger = Logger.getLogger(WechatServlet.class);
 
 	/**
 	 * serialVersionUID:TODO(用一句话描述这个变量表示什么).
+	 * 
 	 * @since JDK 1.6
 	 */
 	private static final long serialVersionUID = 1L;
 
 	public WechatServlet() {
-		
+
 		super();
-		
-	}
-	
-	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		
-		 mainchat myWechat = new mainchat(req);
-		 
-		 String result = myWechat.execute();
-		
-		 resp.getOutputStream().write(result.getBytes());
+
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		
-		 mainchat myWechat = new mainchat(req);
-		 
-		 String result = myWechat.execute();
-		
-		 resp.getOutputStream().write(result.getBytes());
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+		MainChat myWechat = new MainChat(req);
+
+		String result = myWechat.execute();
+
+		resp.getOutputStream().write(result.getBytes());
 	}
-	
+
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+		MainChat myWechat = new MainChat(req);
+
+		String result = myWechat.execute();
+
+		resp.getOutputStream().write(result.getBytes());
+	}
+
 }
-
