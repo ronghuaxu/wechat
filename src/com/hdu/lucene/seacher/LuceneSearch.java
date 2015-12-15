@@ -17,7 +17,7 @@ import org.apache.lucene.util.Version;
 import org.wltea.analyzer.lucene.IKAnalyzer;
 
 /**
- * 查找索引 Created with IntelliJ IDEA. User: jackzhao Date: 14-3-10 Time: 下午1:38 To
+ * 查找索引 Created with IntelliJ IDEA. User: xuronghua Date: 15-12-10 Time: 下午1:38 To
  * change this template use File | Settings | File Templates.
  */
 public class LuceneSearch {
@@ -30,38 +30,37 @@ public class LuceneSearch {
 	// 构造函数
 	public LuceneSearch() {
 		try {
+			
 			IndexReader indexReader = DirectoryReader.open(FSDirectory.open(new File(ConstantsFile.INDEX_FILE_PATH)));
-			// FSDirectory dire=FSDirectory.open(new
-			// File(ConstantsFile.INDEX_STORE_PATH));
-
-			// IndexReader reader = DirectoryReader.open(FSDirectory.open(new
-			// File(ConstantsFile.INDEX_STORE_PATH)));
-			// searcher = new IndexSearcher(reader);
-
-			// System.out.println("dd"+dire.listAll().length);
-			// IndexReader indexReader=DirectoryReader.open(dire.);
-			// System.out.println("ds"+indexReader);
+			
 			searcher = new IndexSearcher(indexReader);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	// 返回查询结果
-	public final TopDocs search(String keyWord) {
+	public TopDocs search(String keyWord) {
 		System.out.println("正在检索关键字：" + keyWord);
 		try {
 			// Analyzer analyzer=new StandardAnalyzer(Version.LUCENE_47);
 			Analyzer analyzer = new IKAnalyzer();
+			
 			QueryParser queryParser = new QueryParser(Version.LUCENE_47, questionfield, analyzer);
 			// 将关键字包装成Query对象
 			query = queryParser.parse(keyWord);
 			Date start = new Date();
 			TopDocs results = searcher.search(query, 5 * 2);
-			System.out.println(results);
-
+			
+			for (int i = 0; i < results.scoreDocs.length; i++) {
+				System.out.println(results.scoreDocs[i].score);
+			}
+			
 			Date end = new Date();
+			
 			System.out.println("检索完成用时:" + (end.getTime() - start.getTime()) + "毫秒");
+			
 			return results;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -123,19 +122,4 @@ public class LuceneSearch {
 		}
 	}
 
-	// 查询方法入口
-	// public static void main(String[] arg) {
-	// try {
-	// LuceneSearch luceneSearch = new LuceneSearch();
-	// TopDocs topDocs = null;
-	// topDocs = luceneSearch.search("中国");
-	// luceneSearch.printResult(topDocs);
-	// topDocs = luceneSearch.search("香烟");
-	// luceneSearch.printResult(topDocs);
-	// topDocs = luceneSearch.search("犯罪");
-	// luceneSearch.printResult(topDocs);
-	// } catch (Exception ex) {
-	// ex.printStackTrace();
-	// }
-	// }
 }
