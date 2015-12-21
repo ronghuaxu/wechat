@@ -20,15 +20,15 @@ import org.wltea.analyzer.lucene.IKAnalyzer;
  * 查找索引 Created with IntelliJ IDEA. User: xuronghua Date: 15-12-10 Time: 下午1:38 To
  * change this template use File | Settings | File Templates.
  */
-public class LuceneSearch {
+public class NormalLuceneSearch {
 	// 声明一个IndexSearcher对象
-	private IndexSearcher searcher = null;
+	protected IndexSearcher searcher = null;
 	// 声明一个Query对象
 	private Query query = null;
 	private String questionfield = "question";
 
 	// 构造函数
-	public LuceneSearch() {
+	public NormalLuceneSearch() {
 		try {
 			
 			IndexReader indexReader = DirectoryReader.open(FSDirectory.open(new File(ConstantsFile.INDEX_FILE_PATH)));
@@ -92,7 +92,7 @@ public class LuceneSearch {
 		String msg = "对不起，您的问题太深奥了，我暂时不能理解";
 
 		try {
-			LuceneSearch luceneSearch = new LuceneSearch();
+			NormalLuceneSearch luceneSearch = new NormalLuceneSearch();
 			TopDocs topDocs = null;
 			topDocs = luceneSearch.search(question);
 			return luceneSearch.printAnswer(topDocs);
@@ -113,7 +113,6 @@ public class LuceneSearch {
 				try {
 					Document document = searcher.doc(scoreDocs[i].doc);
 					msg = document.get("answer");
-					System.out.println("这是第" + (i + 1) + "个检索到的结果，文件名为：" + document.get("path"));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

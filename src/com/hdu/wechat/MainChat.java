@@ -10,6 +10,8 @@
 package com.hdu.wechat;
 
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +29,9 @@ import org.sword.wechat4j.param.SignatureParam;
 import org.sword.wechat4j.request.WechatRequest;
 import org.sword.wechat4j.response.WechatResponse;
 
-import com.hdu.lucene.seacher.LuceneSearch;
+import com.hdu.dbconnector.DBHelper;
+import com.hdu.lucene.seacher.NormalLuceneSearch;
+import com.hdu.lucene.seacher.PersonalLuceneSearch;
 
 /**
  * ClassName:mainchat <br/>
@@ -58,6 +62,7 @@ public class MainChat extends WechatSupport {
 		String token = Config.instance().getToken();
 
 		ValidateSignature validateSignature = new ValidateSignature(signature, timestamp, nonce, token);
+		
 		if (!validateSignature.check()) {
 			return "error";
 		}
@@ -77,6 +82,8 @@ public class MainChat extends WechatSupport {
 		try {
 			JaxbParser jaxbParser = new JaxbParser(WechatRequest.class);
 			this.wechatRequest = (WechatRequest) jaxbParser.toObj(postDataStr);
+			
+			
 		} catch (Exception e) {
 			logger.error("post data parse error");
 			e.printStackTrace();
@@ -96,6 +103,8 @@ public class MainChat extends WechatSupport {
 			jaxbParser.setCdataNode(WechatResponse.CDATA_TAG);
 
 			result = jaxbParser.toXML(wechatResponse);
+			
+			System.out.println("+++++++++++++++"+result);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -192,20 +201,87 @@ public class MainChat extends WechatSupport {
 	protected void onText() {
 		// responseText("hello world!");
 
-		LuceneSearch lucenesearch = new LuceneSearch();
-
+		NormalLuceneSearch normallucenesearch = new NormalLuceneSearch();
+		
+		PersonalLuceneSearch  personallucenesearch =new PersonalLuceneSearch();
+		
 		String responseText = wechatRequest.getContent();
 
 		String answer = null;
+		
+		String sql = "select telephone from telephone_openid_mapping where openid ="+"'"+wechatRequest.getFromUserName()+"'";
+		
+		DBHelper dbhelper = new DBHelper();
+		
+		dbhelper.getConnection(sql.toString());
+		
+		ResultSet resultSet =null;
+		try {
+			resultSet = dbhelper.pst.executeQuery();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		if (isMobile(responseText)) {
 
-			// 将用户的Fromusername和用户id号码进行绑定 并插入到数据库
-			answer = "恭喜,绑定成功！";
-			
+			try {
+
+				if (resultSet.next()) {
+					// 说明数据库中有该用户
+					answer = "您已经进行用户绑定，绑定的手机号码为：" + resultSet.getString("telephone");
+				} else {
+					// 不存在对应用户,需要插入到数据库中
+					sql = "insert into telephone_openid_mapping (telephone,openid) values(?,?)";
+
+					int index = 1;
+
+					dbhelper.getConnection(sql);
+
+					dbhelper.pst.setString(index++, responseText);
+
+					dbhelper.pst.setString(index++, wechatRequest.getFromUserName());
+
+					int size = -1;
+					size = dbhelper.pst.executeUpdate();
+
+					if (size != -1) {
+						// 数据库出错处理
+						answer = "恭喜,绑定成功！";
+					}
+
+				}
+
+				// 将用户的Fromusername和用户id号码进行绑定 并插入到数据库
+
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 		} else {
-			answer = lucenesearch.readytoAnswer(responseText);
+			
+			try {
+				if(resultSet.next()){
+					//查询该用户应该从用户的索引文件夹里面找
+					answer = personallucenesearch.readytoAnswer(responseText);
+					
+					System.out.println("answer+++++++++++++++++++++++++"+answer);
+					
+					if(answer==null){
+						answer = normallucenesearch.readytoAnswer(responseText);
+						
+						System.out.println("answer+++++++++++++++++++++++++"+answer);
+					}
+				}
+				else{
+					answer = normallucenesearch.readytoAnswer(responseText);
+					System.out.println("answer+++++++++++++++++++++++++"+answer);
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		responseText(answer);
@@ -222,7 +298,7 @@ public class MainChat extends WechatSupport {
 	@Override
 	protected void onVideo() {
 
-		LuceneSearch lucenesearch = new LuceneSearch();
+		NormalLuceneSearch lucenesearch = new NormalLuceneSearch();
 
 		String answer = lucenesearch.readytoAnswer(wechatRequest.getContent());
 

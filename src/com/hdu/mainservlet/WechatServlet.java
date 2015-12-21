@@ -54,8 +54,13 @@ public class WechatServlet extends HttpServlet {
 		MainChat myWechat = new MainChat(req);
 
 		String result = myWechat.execute();
-
+		
+		System.out.println("###########################get"+result);
+		
+		resp.setContentType("text/xml;UTF-8");
+		
 		resp.getOutputStream().write(result.getBytes());
+		
 	}
 
 	@Override
@@ -64,8 +69,21 @@ public class WechatServlet extends HttpServlet {
 		MainChat myWechat = new MainChat(req);
 
 		String result = myWechat.execute();
-
+		
+		System.out.println("###########################post"+result);
+		
+		resp.setCharacterEncoding("UTF-8");
+		 
+//		resp.setContentType("UTF-8");
+		
+		
+		 System.out.println(resp.getCharacterEncoding());
+		  
+		 
+		
+		
 		resp.getOutputStream().write(result.getBytes());
+		
 	}
 
 }
