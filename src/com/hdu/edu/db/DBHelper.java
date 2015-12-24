@@ -1,4 +1,4 @@
-package com.hdu.dbconnector;
+package com.hdu.edu.db;
 
 import java.sql.Connection;  
 import java.sql.DriverManager;  

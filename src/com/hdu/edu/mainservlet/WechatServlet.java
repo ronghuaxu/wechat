@@ -7,7 +7,7 @@
  *
 */
 
-package com.hdu.mainservlet;
+package com.hdu.edu.mainservlet;
 
 import java.io.IOException;
 
@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
-import com.hdu.wechat.MainChat;
+import com.hdu.edu.wechat.MainChat;
 
 /**
  * ClassName:WechatServlet <br/>

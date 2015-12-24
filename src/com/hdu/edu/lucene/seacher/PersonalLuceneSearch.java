@@ -1,4 +1,4 @@
-package com.hdu.lucene.seacher;
+package com.hdu.edu.lucene.seacher;
 
 import java.io.File;
 

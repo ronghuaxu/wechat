@@ -8,7 +8,7 @@
     <description></description>
     <display-name>WechatServlet</display-name>
     <servlet-name>WechatServlet</servlet-name>
-    <servlet-class>com.hdu.mainservlet.WechatServlet</servlet-class>
+    <servlet-class>com.hdu.edu.mainservlet.WechatServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>WechatServlet</servlet-name>

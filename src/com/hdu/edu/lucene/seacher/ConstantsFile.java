@@ -1,4 +1,4 @@
-package com.hdu.lucene.seacher;
+package com.hdu.edu.lucene.seacher;
 
 /**
  * 常量类 Created with IntelliJ IDEA. User: xuronghua Date: 15-12-10 Time: 上午11:35 To
