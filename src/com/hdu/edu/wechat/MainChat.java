@@ -11,6 +11,7 @@ package com.hdu.edu.wechat;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -35,10 +36,11 @@ import org.sword.wechat4j.response.WechatResponse;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.hdu.edu.bean.ChatRecordBean;
 import com.hdu.edu.bean.translatebean;
 import com.hdu.edu.config.ConstantsDailog;
-import com.hdu.edu.config.WechatConfiguration;
 import com.hdu.edu.db.DBHelper;
+import com.hdu.edu.db.DBUtil;
 import com.hdu.edu.lucene.seacher.NormalLuceneSearch;
 import com.hdu.edu.lucene.seacher.PersonalLuceneSearch;
 import com.hdu.edu.web.httpclient.HttpClientHelper;
@@ -57,9 +59,11 @@ import com.hdu.edu.web.httpclient.HttpClientHelper;
 public class MainChat extends WechatSupport
 {
     
-    Logger logger = Logger.getLogger(MainChat.class);
+    private final Logger logger = Logger.getLogger(MainChat.class);
     
     private HttpServletRequest request;
+    
+    private ChatRecordBean chatrecordBean = new ChatRecordBean();
     
     @Override
     public String execute()
@@ -232,15 +236,11 @@ public class MainChat extends WechatSupport
     @Override
     protected void onText()
     {
-        // responseText("hello world!");
-        
         NormalLuceneSearch normallucenesearch = new NormalLuceneSearch();
         
         PersonalLuceneSearch personallucenesearch = new PersonalLuceneSearch();
         
         String responseText = wechatRequest.getContent();
-        
-        String answer = null;
         
         String sql = "select telephone from telephone_openid_mapping where openid =" + "'"
             + wechatRequest.getFromUserName() + "'";
@@ -262,9 +262,10 @@ public class MainChat extends WechatSupport
         
         if (strIsEnglish(responseText))
         {
-           
-            String finalURL = MessageFormat.format(ConstantsDailog.baidu_translate_api, URLEncoder.encode(responseText));
             
+            String finalURL =
+                MessageFormat.format(ConstantsDailog.baidu_translate_api, URLEncoder.encode(responseText));
+                
             System.out.println("finalURL==============" + finalURL);
             // 创建一个HttpClientHelper对象
             HttpClientHelper httpClientHelper = new HttpClientHelper();
@@ -276,25 +277,30 @@ public class MainChat extends WechatSupport
             JSONArray result = object.getJSONArray("trans_result");
             
             List<translatebean> links = JSON.parseArray(result.toJSONString(), translatebean.class);
-           
+            
             System.out.println(links.get(0).getDst());
             
             try
             {
+                chatrecordBean.setRequest_msg(responseText);
+                chatrecordBean.setOpen_id(wechatRequest.getFromUserName());
                 if (resultSet.next())
                 {
-                    answer = personallucenesearch.readytoAnswer(links.get(0).getDst());
-                    if (answer == null)
+                    chatrecordBean = personallucenesearch.readytoAnswer(links.get(0).getDst(),chatrecordBean);
+                    if (chatrecordBean.getCategory() == null)
                     {
-                        answer = normallucenesearch.readytoAnswer(links.get(0).getDst());
+                        chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(),chatrecordBean);
                         
-                        System.out.println("answer+++++++++++++++++++++++++" + answer);
+                        // 为了保存用户输入的原始问题信息
+                        
+                        
+                        DBUtil.chatRecordTosql(chatrecordBean);
                     }
                 }
                 else
                 {
-                    answer = normallucenesearch.readytoAnswer(links.get(0).getDst());
-                    System.out.println("answer+++++++++++++++++++++++++" + answer);
+                    chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(),chatrecordBean);
+                    DBUtil.chatRecordTosql(chatrecordBean);
                 }
             }
             catch (SQLException e)
@@ -315,7 +321,8 @@ public class MainChat extends WechatSupport
                 {
                     // 说明数据库中有该用户
                     // answer = "您已经进行用户绑定，绑定的手机号码为：" + resultSet.getString("telephone");
-                    answer = ConstantsDailog.alreadybandingresponse + resultSet.getString("telephone");
+                    chatrecordBean
+                        .setResponse_msg(ConstantsDailog.alreadybandingresponse + resultSet.getString("telephone"));
                 }
                 else
                 {
@@ -337,7 +344,7 @@ public class MainChat extends WechatSupport
                     {
                         // 数据库出错处理
                         // answer = "恭喜,绑定成功！";
-                        answer = ConstantsDailog.bandingresponse;
+                        chatrecordBean.setResponse_msg(ConstantsDailog.bandingresponse);
                     }
                     
                 }
@@ -357,24 +364,26 @@ public class MainChat extends WechatSupport
             
             try
             {
+                chatrecordBean.setRequest_msg(responseText);
+                
+                chatrecordBean.setOpen_id(wechatRequest.getFromUserName());
                 if (resultSet.next())
                 {
                     // 查询该用户应该从用户的索引文件夹里面找
-                    answer = personallucenesearch.readytoAnswer(responseText);
+                    chatrecordBean = personallucenesearch.readytoAnswer(responseText,chatrecordBean);
                     
-                    System.out.println("answer+++++++++++++++++++++++++" + answer);
-                    
-                    if (answer == null)
+                    if (chatrecordBean.getCategory() == null)
                     {
-                        answer = normallucenesearch.readytoAnswer(responseText);
+                        chatrecordBean = normallucenesearch.readytoAnswer(responseText,chatrecordBean);
                         
-                        System.out.println("answer+++++++++++++++++++++++++" + answer);
+                        // 为了保存用户输入的原始问题信息
+                        DBUtil.chatRecordTosql(chatrecordBean);
                     }
                 }
                 else
                 {
-                    answer = normallucenesearch.readytoAnswer(responseText);
-                    System.out.println("answer+++++++++++++++++++++++++" + answer);
+                    chatrecordBean = normallucenesearch.readytoAnswer(responseText,chatrecordBean);
+                    DBUtil.chatRecordTosql(chatrecordBean);
                 }
             }
             catch (SQLException e)
@@ -384,15 +393,7 @@ public class MainChat extends WechatSupport
             }
         }
         
-        responseText(answer);
-        
-    }
-    
-    @Override
-    protected void onUnknown()
-    {
-        
-        // TODO Auto-generated method stub
+        responseText(chatrecordBean.getResponse_msg());
         
     }
     
@@ -402,9 +403,9 @@ public class MainChat extends WechatSupport
         
         NormalLuceneSearch lucenesearch = new NormalLuceneSearch();
         
-        String answer = lucenesearch.readytoAnswer(wechatRequest.getContent());
+        chatrecordBean = lucenesearch.readytoAnswer(wechatRequest.getContent(),chatrecordBean);
         
-        responseText(answer);
+        responseText(chatrecordBean.getResponse_msg());
         
     }
     
@@ -412,110 +413,6 @@ public class MainChat extends WechatSupport
     protected void onVoice()
     {
         
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void picPhotoOrAlbum()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void picSysPhoto()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void picWeixin()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void scan()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void scanCodePush()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void scanCodeWaitMsg()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void subscribe()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void templateMsgCallback()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void unSubscribe()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    protected void view()
-    {
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    protected void onShortVideo()
-    {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    protected void kfCreateSession()
-    {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    protected void kfCloseSession()
-    {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    protected void kfSwitchSession()
-    {
         // TODO Auto-generated method stub
         
     }
@@ -550,6 +447,83 @@ public class MainChat extends WechatSupport
             }
         }
         return true;
+    }
+    
+    @Override
+    protected void onUnknown()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void subscribe()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void unSubscribe()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void scan()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void view()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void templateMsgCallback()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void scanCodePush()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void scanCodeWaitMsg()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void picSysPhoto()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void picPhotoOrAlbum()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    protected void picWeixin()
+    {
+        // TODO Auto-generated method stub
+        
     }
     
 }

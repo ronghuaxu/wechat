@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;  
   
 public class DBHelper {  
-    public static final String url = "jdbc:mysql://127.0.0.1/mywechat";  
+    public static final String url = "jdbc:mysql://127.0.0.1/mywechat?characterEncoding=UTF-8";  
     public static final String name = "com.mysql.jdbc.Driver";  
     public static final String user = "root";  
     public static final String password = "123456";  

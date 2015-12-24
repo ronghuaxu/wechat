@@ -10,8 +10,12 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 
-public class PersonalLuceneSearch extends NormalLuceneSearch {
+import com.hdu.edu.bean.ChatRecordBean;
+import com.hdu.edu.bean.QuesAnsBean;
 
+public class PersonalLuceneSearch extends NormalLuceneSearch {
+    
+    
 	public PersonalLuceneSearch() {
 		try {
 
@@ -25,7 +29,7 @@ public class PersonalLuceneSearch extends NormalLuceneSearch {
 	}
 
 	@Override
-	public String readytoAnswer(String question) {
+	public ChatRecordBean readytoAnswer(String question,ChatRecordBean chatrecordBean) {
 		String msg ="对不起，您的问题太深奥了，我暂时不能理解";
 		try {
 			PersonalLuceneSearch luceneSearch = new PersonalLuceneSearch();
@@ -36,40 +40,38 @@ public class PersonalLuceneSearch extends NormalLuceneSearch {
 				System.out.println(topDocs.scoreDocs[i].score);
 				if(topDocs.scoreDocs[i].score>0.1){
 					flag=1;
+					break;
 				}
 			}
 			if(flag==1){
-				return luceneSearch.printAnswer(topDocs);
+				luceneSearch.printAnswer(1,topDocs,chatrecordBean);
 			}else{
-				return null;
+			    chatrecordBean.setResponse_msg(msg);
 			}
 			
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		return msg;
+		return chatrecordBean;
 	}
 
-	@Override
-	public String printAnswer(TopDocs topDocs) {
-		// TODO Auto-generated method stub
-		ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-		String msg = null;
-		if (scoreDocs.length == 0) {
-			return msg;
-		} else {
-			//目前只输出一个结果
-			for (int i = 0; i < 1; i++) {
-				try {
-					Document document = searcher.doc(scoreDocs[i].doc);
-					msg = document.get("answer");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-			return msg;
-		}
-	}
+//	@Override
+//	public ChatRecordBean printAnswer(TopDocs topDocs) {
+//		// TODO Auto-generated method stub
+//		ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+//			//目前只输出一个结果
+//			for (int i = 0; i < 1; i++) {
+//				try {
+//					Document document = searcher.doc(scoreDocs[i].doc);
+//					chatrecordBean.setResponse_msg(document.get("answer"));
+//					chatrecordBean.setCategory(document.get("category"));
+//					chatrecordBean.setCategory(document.get("question"));
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//			return chatrecordBean;
+//		}
 }
 	
 	
