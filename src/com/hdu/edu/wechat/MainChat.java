@@ -69,7 +69,7 @@ public class MainChat extends WechatSupport
     public String execute()
     {
         
-        logger.debug("WechatSupport run");
+        logger.info("WechatSupport run");
         SignatureParam param = new SignatureParam(request);
         String signature = param.getSignature();
         String timestamp = param.getTimestamp();
@@ -114,10 +114,6 @@ public class MainChat extends WechatSupport
         
         dispatchMessage();
         
-        logger.info(wechatRequest.getFromUserName());
-        
-        logger.info("----------------->content:" + wechatRequest.getContent());
-        
         String result = null;
         try
         {
@@ -128,7 +124,7 @@ public class MainChat extends WechatSupport
             
             result = jaxbParser.toXML(wechatResponse);
             
-            System.out.println("+++++++++++++++" + result);
+            logger.info("+++++++++++++++" + result);
             
         }
         catch (Exception e)
@@ -264,9 +260,9 @@ public class MainChat extends WechatSupport
         {
             
             String finalURL =
-                MessageFormat.format(ConstantsDailog.baidu_translate_api, URLEncoder.encode(responseText));
+                MessageFormat.format(ConstantsDailog.BAIDU_TRANSLATE_API, URLEncoder.encode(responseText));
                 
-            System.out.println("finalURL==============" + finalURL);
+            logger.info("finalURL==============" + finalURL);
             // 创建一个HttpClientHelper对象
             HttpClientHelper httpClientHelper = new HttpClientHelper();
             
@@ -278,7 +274,7 @@ public class MainChat extends WechatSupport
             
             List<translatebean> links = JSON.parseArray(result.toJSONString(), translatebean.class);
             
-            System.out.println(links.get(0).getDst());
+            logger.info(links.get(0).getDst());
             
             try
             {
@@ -286,20 +282,19 @@ public class MainChat extends WechatSupport
                 chatrecordBean.setOpen_id(wechatRequest.getFromUserName());
                 if (resultSet.next())
                 {
-                    chatrecordBean = personallucenesearch.readytoAnswer(links.get(0).getDst(),chatrecordBean);
+                    chatrecordBean = personallucenesearch.readytoAnswer(links.get(0).getDst(), chatrecordBean);
                     if (chatrecordBean.getCategory() == null)
                     {
-                        chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(),chatrecordBean);
+                        chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(), chatrecordBean);
                         
                         // 为了保存用户输入的原始问题信息
-                        
                         
                         DBUtil.chatRecordTosql(chatrecordBean);
                     }
                 }
                 else
                 {
-                    chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(),chatrecordBean);
+                    chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(), chatrecordBean);
                     DBUtil.chatRecordTosql(chatrecordBean);
                 }
             }
@@ -322,7 +317,7 @@ public class MainChat extends WechatSupport
                     // 说明数据库中有该用户
                     // answer = "您已经进行用户绑定，绑定的手机号码为：" + resultSet.getString("telephone");
                     chatrecordBean
-                        .setResponse_msg(ConstantsDailog.alreadybandingresponse + resultSet.getString("telephone"));
+                        .setResponse_msg(ConstantsDailog.ALREADYBANDINGRESPONSE + resultSet.getString("telephone"));
                 }
                 else
                 {
@@ -344,7 +339,7 @@ public class MainChat extends WechatSupport
                     {
                         // 数据库出错处理
                         // answer = "恭喜,绑定成功！";
-                        chatrecordBean.setResponse_msg(ConstantsDailog.bandingresponse);
+                        chatrecordBean.setResponse_msg(ConstantsDailog.BANDINGRESPONSE);
                     }
                     
                 }
@@ -370,11 +365,11 @@ public class MainChat extends WechatSupport
                 if (resultSet.next())
                 {
                     // 查询该用户应该从用户的索引文件夹里面找
-                    chatrecordBean = personallucenesearch.readytoAnswer(responseText,chatrecordBean);
+                    chatrecordBean = personallucenesearch.readytoAnswer(responseText, chatrecordBean);
                     
                     if (chatrecordBean.getCategory() == null)
                     {
-                        chatrecordBean = normallucenesearch.readytoAnswer(responseText,chatrecordBean);
+                        chatrecordBean = normallucenesearch.readytoAnswer(responseText, chatrecordBean);
                         
                         // 为了保存用户输入的原始问题信息
                         DBUtil.chatRecordTosql(chatrecordBean);
@@ -382,7 +377,7 @@ public class MainChat extends WechatSupport
                 }
                 else
                 {
-                    chatrecordBean = normallucenesearch.readytoAnswer(responseText,chatrecordBean);
+                    chatrecordBean = normallucenesearch.readytoAnswer(responseText, chatrecordBean);
                     DBUtil.chatRecordTosql(chatrecordBean);
                 }
             }
@@ -403,7 +398,7 @@ public class MainChat extends WechatSupport
         
         NormalLuceneSearch lucenesearch = new NormalLuceneSearch();
         
-        chatrecordBean = lucenesearch.readytoAnswer(wechatRequest.getContent(),chatrecordBean);
+        chatrecordBean = lucenesearch.readytoAnswer(wechatRequest.getContent(), chatrecordBean);
         
         responseText(chatrecordBean.getResponse_msg());
         

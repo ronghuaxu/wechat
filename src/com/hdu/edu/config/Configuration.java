@@ -32,7 +32,6 @@ public class Configuration
         return SingletonHolder.INSTANCE;
     }
     
-    
     public <T> String getSingleValue(String key, Class<T> t)
     {
         String value = getValueList(key);
@@ -43,8 +42,8 @@ public class Configuration
     
     private String getValueList(String key)
     {
-      
-            return CACHE.get(key);
+        
+        return CACHE.get(key);
         
     }
     
@@ -74,7 +73,7 @@ public class Configuration
             
             if (prop.containsKey(k))
             {
-               String a = prop.getProperty(k);
+                String a = prop.getProperty(k);
                 CACHE.put(k, prop.getProperty(k));
             }
             else

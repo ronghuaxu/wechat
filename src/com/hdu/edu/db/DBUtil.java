@@ -8,11 +8,13 @@ public class DBUtil
 {
     private static DBHelper dbhelper = new DBHelper();;
     
-    public static void chatRecordTosql(ChatRecordBean chatrecordBean){
+    public static void chatRecordTosql(ChatRecordBean chatrecordBean)
+    {
         
-     // 不存在对应用户,需要插入到数据库中
-        String sql = "insert into chat_record (open_id,request_msg,response_msg,category,chat_time) values(?,?,?,?,?)";
-        
+        // 不存在对应用户,需要插入到数据库中
+        String sql =
+            "insert into wechat_chat_record (open_id,request_msg,response_msg,category,chat_time) values(?,?,?,?,?)";
+            
         int index = 1;
         
         dbhelper.getConnection(sql);

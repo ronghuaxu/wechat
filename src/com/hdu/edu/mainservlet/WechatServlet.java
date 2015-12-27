@@ -31,59 +31,61 @@ import com.hdu.edu.wechat.MainChat;
  * @since JDK 1.6
  * @see
  */
-public class WechatServlet extends HttpServlet {
-
-	Logger logger = Logger.getLogger(WechatServlet.class);
-
-	/**
-	 * serialVersionUID:TODO(用一句话描述这个变量表示什么).
-	 * 
-	 * @since JDK 1.6
-	 */
-	private static final long serialVersionUID = 1L;
-
-	public WechatServlet() {
-
-		super();
-
-	}
-
-	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-		MainChat myWechat = new MainChat(req);
-
-		String result = myWechat.execute();
-		
-		System.out.println("###########################get"+result);
-		
-		resp.setContentType("text/xml;UTF-8");
-		
-		resp.getOutputStream().write(result.getBytes());
-		
-	}
-
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-		MainChat myWechat = new MainChat(req);
-
-		String result = myWechat.execute();
-		
-		System.out.println("###########################post"+result);
-		
-		resp.setCharacterEncoding("UTF-8");
-		 
-//		resp.setContentType("UTF-8");
-		
-		
-		 System.out.println(resp.getCharacterEncoding());
-		  
-		 
-		
-		
-		resp.getOutputStream().write(result.getBytes());
-		
-	}
-
+public class WechatServlet extends HttpServlet
+{
+    
+    Logger logger = Logger.getLogger(WechatServlet.class);
+    
+    /**
+     * serialVersionUID:TODO(用一句话描述这个变量表示什么).
+     * 
+     * @since JDK 1.6
+     */
+    private static final long serialVersionUID = 1L;
+    
+    public WechatServlet()
+    {
+        
+        super();
+        
+    }
+    
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException
+    {
+        
+        MainChat myWechat = new MainChat(req);
+        
+        String result = myWechat.execute();
+        
+        System.out.println("###########################get" + result);
+        
+        resp.setContentType("text/xml;UTF-8");
+        
+        resp.getOutputStream().write(result.getBytes());
+        
+    }
+    
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException
+    {
+        
+        MainChat myWechat = new MainChat(req);
+        
+        String result = myWechat.execute();
+        
+        System.out.println("###########################post" + result);
+        
+        resp.setCharacterEncoding("UTF-8");
+        
+        // resp.setContentType("UTF-8");
+        
+        System.out.println(resp.getCharacterEncoding());
+        
+        resp.getOutputStream().write(result.getBytes());
+        
+    }
+    
 }
