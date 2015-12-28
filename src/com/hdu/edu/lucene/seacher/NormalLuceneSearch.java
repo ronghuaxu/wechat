@@ -3,6 +3,7 @@ package com.hdu.edu.lucene.seacher;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
+import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -79,7 +80,7 @@ public class NormalLuceneSearch
         }
     }
     
-    public ChatRecordBean readytoAnswer(String question, ChatRecordBean chatrecordBean)
+    public ChatRecordBean readytoAnswer(String question, ChatRecordBean chatrecordBean,List<String> answerStore)
     {
         
         try
@@ -96,7 +97,7 @@ public class NormalLuceneSearch
             
             if (scoreDocs.length == 0 || scoreDocs[0].score < 0.35)
             {
-                luceneSearch.printAnswer(0, topDocs, chatrecordBean);
+                luceneSearch.printAnswer(0, topDocs, chatrecordBean,answerStore);
                 
                 return chatrecordBean;
             }
@@ -106,7 +107,7 @@ public class NormalLuceneSearch
                 // scoreDocs.length == 1 因为有可能只返回一条数据 第一条和第二条分数差大于0.3，只返回第一条
                 if (scoreDocs.length == 1 || (scoreDocs[0].score - scoreDocs[1].score) > 0.3)
                 {
-                    luceneSearch.printAnswer(1, topDocs, chatrecordBean);
+                    luceneSearch.printAnswer(1, topDocs, chatrecordBean,answerStore);
                 }
                 else
                 {// 头两条分数差值小于0.3，返回头两条对应的问题，即没有找到确切答案
@@ -126,7 +127,7 @@ public class NormalLuceneSearch
                             break;
                         }
                     }
-                    luceneSearch.printAnswer(number, topDocs, chatrecordBean);
+                    luceneSearch.printAnswer(number, topDocs, chatrecordBean,answerStore);
                 }
                 return chatrecordBean;
             }
@@ -145,7 +146,7 @@ public class NormalLuceneSearch
                 {
                     break;
                 }
-                luceneSearch.printAnswer(number, topDocs, chatrecordBean);
+                luceneSearch.printAnswer(number, topDocs, chatrecordBean,answerStore);
                 
             }
             
@@ -157,12 +158,12 @@ public class NormalLuceneSearch
         return chatrecordBean;
     }
     
-    public ChatRecordBean printAnswer(int number, TopDocs topDocs, ChatRecordBean chatrecordBean)
+    public ChatRecordBean printAnswer(int number, TopDocs topDocs, ChatRecordBean chatrecordBean,List<String> answerStore)
     {
         // TODO Auto-generated method stub
         ScoreDoc[] scoreDocs = topDocs.scoreDocs;
         Document document = null;
-        String responseMsg = "您可能想问的是不是：";
+        String responseMsg = "您可能想问的是不是：\n\n";
         // 目前只输出一个结果
         if (number == 1)
         {
@@ -191,18 +192,22 @@ public class NormalLuceneSearch
         }
         else
         {
+            answerStore.clear();
             for (int i = 0; i < number; i++)
             {
                 try
                 {
                     document = searcher.doc(scoreDocs[i].doc);
-                    responseMsg += " " + (i + 1) + "." + document.get("question");
+                    responseMsg += " " + (i + 1) + "." + document.get("question")+"\n\n";
+                    answerStore.add(document.get("answer"));
+                    
                 }
                 catch (Exception e)
                 {
                     e.printStackTrace();
                 }
             }
+            responseMsg+="温馨提示：请输入您想提问的问题编号~";
             chatrecordBean.setResponse_msg(responseMsg);
             chatrecordBean.setCategory("复杂提问");
             Date chat_date = new Date(System.currentTimeMillis());

@@ -33,7 +33,7 @@ public class PersonalLuceneSearch extends NormalLuceneSearch
         }
     }
     
-    @Override
+  
     public ChatRecordBean readytoAnswer(String question, ChatRecordBean chatrecordBean)
     {
         String msg = "对不起，您的问题太深奥了，我暂时不能理解";
@@ -54,7 +54,7 @@ public class PersonalLuceneSearch extends NormalLuceneSearch
             }
             if (flag == 1)
             {
-                luceneSearch.printAnswer(1, topDocs, chatrecordBean);
+                luceneSearch.printAnswer(1, topDocs, chatrecordBean,null);
             }
             else
             {

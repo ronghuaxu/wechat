@@ -43,6 +43,7 @@ import com.hdu.edu.db.DBHelper;
 import com.hdu.edu.db.DBUtil;
 import com.hdu.edu.lucene.seacher.NormalLuceneSearch;
 import com.hdu.edu.lucene.seacher.PersonalLuceneSearch;
+import com.hdu.edu.questionutil.QuestionProcessUtil;
 import com.hdu.edu.web.httpclient.HttpClientHelper;
 
 /**
@@ -64,9 +65,8 @@ public class MainChat extends WechatSupport
     private HttpServletRequest request;
     
     private ChatRecordBean chatrecordBean = new ChatRecordBean();
-    
-    @Override
-    public String execute()
+
+    public String execute(List<String> answerStore)
     {
         
         logger.info("WechatSupport run");
@@ -112,7 +112,7 @@ public class MainChat extends WechatSupport
             e.printStackTrace();
         }
         
-        dispatchMessage();
+        dispatchMessage(answerStore);
         
         String result = null;
         try
@@ -146,7 +146,7 @@ public class MainChat extends WechatSupport
     /**
      * 消息事件分发
      */
-    private void dispatchMessage()
+    private void dispatchMessage(List<String> answerStore)
     {
         logger.info("distributeMessage start");
         if (StringUtils.isBlank(wechatRequest.getMsgType()))
@@ -158,7 +158,7 @@ public class MainChat extends WechatSupport
         switch (msgType)
         {
             case text:
-                onText();
+                onText(answerStore);
                 break;
             case image:
                 onImage();
@@ -229,8 +229,7 @@ public class MainChat extends WechatSupport
         
     }
     
-    @Override
-    protected void onText()
+    protected void onText(List<String> answerStore)
     {
         NormalLuceneSearch normallucenesearch = new NormalLuceneSearch();
         
@@ -255,8 +254,18 @@ public class MainChat extends WechatSupport
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-        
-        if (strIsEnglish(responseText))
+        if(answerStore.size()>0&&QuestionProcessUtil.isNumeric(responseText)){
+            
+            int i=Integer.parseInt(responseText);
+            if(i<=0||i>answerStore.size()){
+                chatrecordBean.setResponse_msg("不好意思,请您输入1-"+answerStore.size()+"以内的数字，亲~");
+            }
+            else{
+                chatrecordBean.setResponse_msg(answerStore.get(i-1));
+            }
+            
+        }
+        else if (QuestionProcessUtil.strIsEnglish(responseText))
         {
             
             String finalURL =
@@ -285,7 +294,7 @@ public class MainChat extends WechatSupport
                     chatrecordBean = personallucenesearch.readytoAnswer(links.get(0).getDst(), chatrecordBean);
                     if (chatrecordBean.getCategory() == null)
                     {
-                        chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(), chatrecordBean);
+                        chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(), chatrecordBean,answerStore);
                         
                         // 为了保存用户输入的原始问题信息
                         
@@ -294,7 +303,7 @@ public class MainChat extends WechatSupport
                 }
                 else
                 {
-                    chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(), chatrecordBean);
+                    chatrecordBean = normallucenesearch.readytoAnswer(links.get(0).getDst(), chatrecordBean,answerStore);
                     DBUtil.chatRecordTosql(chatrecordBean);
                 }
             }
@@ -306,7 +315,7 @@ public class MainChat extends WechatSupport
             
         }
         
-        else if (isMobile(responseText))
+        else if (QuestionProcessUtil.isMobile(responseText))
         {
             
             try
@@ -369,7 +378,7 @@ public class MainChat extends WechatSupport
                     
                     if (chatrecordBean.getCategory() == null)
                     {
-                        chatrecordBean = normallucenesearch.readytoAnswer(responseText, chatrecordBean);
+                        chatrecordBean = normallucenesearch.readytoAnswer(responseText, chatrecordBean,answerStore);
                         
                         // 为了保存用户输入的原始问题信息
                         DBUtil.chatRecordTosql(chatrecordBean);
@@ -377,7 +386,7 @@ public class MainChat extends WechatSupport
                 }
                 else
                 {
-                    chatrecordBean = normallucenesearch.readytoAnswer(responseText, chatrecordBean);
+                    chatrecordBean = normallucenesearch.readytoAnswer(responseText, chatrecordBean,answerStore);
                     DBUtil.chatRecordTosql(chatrecordBean);
                 }
             }
@@ -395,13 +404,7 @@ public class MainChat extends WechatSupport
     @Override
     protected void onVideo()
     {
-        
-        NormalLuceneSearch lucenesearch = new NormalLuceneSearch();
-        
-        chatrecordBean = lucenesearch.readytoAnswer(wechatRequest.getContent(), chatrecordBean);
-        
-        responseText(chatrecordBean.getResponse_msg());
-        
+           
     }
     
     @Override
@@ -412,37 +415,7 @@ public class MainChat extends WechatSupport
         
     }
     
-    /**
-     * 手机号验证
-     * 
-     * @param str
-     * @return 验证通过返回true
-     */
-    public static boolean isMobile(String str)
-    {
-        Pattern p = null;
-        Matcher m = null;
-        boolean b = false;
-        p = Pattern.compile("^[1][3,4,5,8][0-9]{9}$"); // 验证手机号
-        m = p.matcher(str);
-        b = m.matches();
-        return b;
-    }
-    
-    // 判断表示是否全为英文
-    public static boolean strIsEnglish(String word)
-    {
-        word = word.replace(" ", "");
-        boolean sign = true; // 初始化标志为为'true'
-        for (int i = 0; i < word.length(); i++)
-        {
-            if (!(word.charAt(i) >= 'A' && word.charAt(i) <= 'Z') && !(word.charAt(i) >= 'a' && word.charAt(i) <= 'z'))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+   
     
     @Override
     protected void onUnknown()
@@ -516,6 +489,13 @@ public class MainChat extends WechatSupport
     
     @Override
     protected void picWeixin()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    protected void onText()
     {
         // TODO Auto-generated method stub
         

@@ -7,13 +7,13 @@ import java.sql.SQLException;
 
 public class DBHelper
 {
-    public static final String URL = "jdbc:mysql://127.0.0.1/tmp_grad?characterEncoding=UTF-8";
+    public static final String URL = "jdbc:mysql://127.0.0.1/mywechat?characterEncoding=UTF-8";
     
     public static final String NAME = "com.mysql.jdbc.Driver";
     
     public static final String USER = "root";
     
-    public static final String PASSWORD = "123qwe,./";
+    public static final String PASSWORD = "123456";
     
     public Connection conn = null;
     

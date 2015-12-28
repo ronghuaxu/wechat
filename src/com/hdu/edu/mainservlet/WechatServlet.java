@@ -10,6 +10,8 @@
 package com.hdu.edu.mainservlet;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -36,6 +38,8 @@ public class WechatServlet extends HttpServlet
     
     Logger logger = Logger.getLogger(WechatServlet.class);
     
+    private List<String> answerStore = new LinkedList<String>();
+    
     /**
      * serialVersionUID:TODO(用一句话描述这个变量表示什么).
      * 
@@ -57,7 +61,7 @@ public class WechatServlet extends HttpServlet
         
         MainChat myWechat = new MainChat(req);
         
-        String result = myWechat.execute();
+        String result = myWechat.execute(answerStore);
         
         System.out.println("###########################get" + result);
         
@@ -74,7 +78,7 @@ public class WechatServlet extends HttpServlet
         
         MainChat myWechat = new MainChat(req);
         
-        String result = myWechat.execute();
+        String result = myWechat.execute(answerStore);
         
         System.out.println("###########################post" + result);
         
